@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>NYC Presidential Election Results</title>
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
+    <script src="https://unpkg.com/topojson@3.0.2/dist/topojson.min.js"></script>
+    <script src="https://d3js.org/d3-dsv.v2.min.js"></script>
+    <script src="https://d3js.org/d3-fetch.v2.min.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" rel="stylesheet"/>
+
+    <style>
+      html, body { touch-action: none; }
+      body { margin: 0; }
+      body, .mapboxgl-popup {
+        font-family: 'IBM Plex Mono', 'Monaco', 'Courier', monospace !important;
+      }
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
+      .mapboxgl-canvas { outline: none; }
+      .map-info {
+        position: absolute;
+        width: 480px;
+        top: 12px;
+        left: 12px;
+        z-index: 9;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px;
+      }
+      .map-info-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .map-title {
+        font-size: 16px;
+        text-align: center;
+        margin: 0;
+      }
+      .more-info {
+        font-size: 16px;
+        text-align: center;
+        align-self: center;
+      }
+      .year-buttons {
+        display: flex;
+        margin: 0;
+      }
+      .year-buttons label, .year-buttons input { flex: 1; }
+      .year-buttons label {
+        text-align: center;
+        font-size: 24px;
+      }
+      input[name="year"] { display: none; }
+      .year-buttons label {
+        display: inline-block;
+        cursor: pointer;
+        padding: 4px 12px;
+      }
+      input[name="year"]:checked + label {
+        background-color: #fff47b;
+        border-radius: 8px;
+        border: 0;
+      }
+      .mapboxgl-popup-content { min-width: 220px; }
+      .mapboxgl-popup-tip { display: none; }
+      .mapboxgl-popup-close-button { padding: 6px; }
+      .popup-header {
+        margin-bottom: 12px;
+        font-weight: bold;
+      }
+      .popup-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .popup-table .col1 { width: 60%; }
+      .popup-table .col2 { width: 20%; }
+      .popup-table .col3 { width: 20%; }
+      .popup-table thead tr { border-bottom: 1px solid #aaa; }
+      .popup-text th {
+        text-align: left;
+        font-weight: normal;
+      }
+      .popup-text .numeric { text-align: right; }
+      .more-info a { text-decoration: none; }
+      .note-2020 {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 8px;
+      }
+      @media (max-width: 524px) {
+        .map-title, .mapboxgl-ctrl-bottom-right { display: none; }
+        .map-info {
+          top: 0;
+          left: 0;
+          width: 100%;
+          border: none;
+          border-radius: 0;
+          padding: 0;
+        }
+        .more-info { font-size: 12px; }
+        .year-buttons { width: 100%; }
+        .year-buttons label {
+          margin: 6px;
+          padding: 4px 0;;
+        }
+        .map-info-header {
+          display: block;
+          margin: 2px 0 0 0;
+        }
+        .note-2020 {
+          text-align: center;
+          margin: 2px 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="map-info">
+      <div class="map-info-header">
+        <div class="map-title">
+          NYC Presidential Election
+        </div>
+
+        <div class="more-info">
+          <a href="https://github.com/toddwschneider/nyc-presidential-election-map" target="_blank">Code on GitHub</a>
+        </div>
+      </div>
+
+      <div class="note-2020">
+        UNOFFICIAL 2020 results, subject to change
+      </div>
+
+      <div class="year-buttons">
+        <input id="year-2016" type="radio" name="year" value="2016">
+        <label for="year-2016">2016</label>
+
+        <input id="year-2020" type="radio" name="year" value="2020" checked>
+        <label for="year-2020">2020</label>
+      </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+      'use strict';
+
+      if (!('fetch' in window) || !('URLSearchParams' in window)) {
+        alert('Sorry, your browser is not supported. Recommended browsers are Chrome, Firefox, and Safari.');
+        throw new Error('unsupported browser');
+      }
+
+      let urlParams = new URLSearchParams(window.location.search);
+
+      if (urlParams.get('year')) {
+        let input = document.querySelector(`input[name='year'][value='${urlParams.get('year')}']`);
+
+        if (input) {
+          input.checked = true;
+        } else {
+          updateUrl();
+        }
+      }
+
+      const MAPBOX_ACCESS_TOKEN = 'your token here';
+
+      if (MAPBOX_ACCESS_TOKEN === 'your token here') {
+        alert("No Mapbox token provided. You'll need to sign up at mapbox.com, generate an access token, and set the MAPBOX_ACCESS_TOKEN variable");
+        throw new Error('no access token');
+      }
+
+      const PARTIES = ['republican', 'democratic', 'green', 'libertarian'];
+      const MIN_VOTES_THRESHOLD = 10;
+      const THIRD_PARTY_THRESHOLD = 0.02;
+      const DISTRICTS_TOPOJSON_2016_URL = 'https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/topojson/nyed_16d.json';
+      const DISTRICTS_TOPOJSON_2020_URL = 'https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/topojson/nyed_20c.json';
+      const ELECTION_RESULTS_URL = 'https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/unofficial/nyc_election_results_by_district-2020-11-03-2300.csv';
+      const MOBILE = isMobileDevice();
+      const COLOR_RANGE = ['#000088', '#282899', '#5050aa', '#7878bc', '#a0a0cd', '#c7c7de', '#f0f0f0', '#e4c8c8', '#d8a0a0', '#cd7878', '#c15050', '#b52828', '#aa0000'];
+      const UNKNOWN_COLOR = 'rgba(0, 0, 0, 0)';
+      const CANDIDATE_NAMES = {
+        '2016': {
+          'republican': 'Donald Trump',
+          'democratic': 'Hillary Clinton',
+          'green': 'Jill Stein',
+          'libertarian': 'Gary Johnson'
+        },
+        '2020': {
+          'republican': 'Donald Trump',
+          'democratic': 'Joe Biden',
+          'green': 'Howie Hawkins',
+          'libertarian': 'Jo Jorgensen'
+        }
+      };
+
+      let map, hoveredDistrictId;
+      let geojson = {};
+      let electionResults = {'2016': {}, '2020': {}};
+
+      let popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        maxWidth: 'none',
+        offset: 50
+      });
+
+      let fetchElectionResults = d3.csv(ELECTION_RESULTS_URL, row => {
+        return {
+          year: row.year,
+          elect_dist: row.elect_dist,
+          republican: +row.republican,
+          democratic: +row.democratic,
+          green: +row.green,
+          libertarian: +row.libertarian
+        };
+      }).then(rows => {
+        rows.forEach(row => {
+          let twoPartyTotal = row.republican + row.democratic;
+          let allPartyTotal = twoPartyTotal + row.green + row.libertarian;
+
+          electionResults[row.year][row.elect_dist] = {
+            republicanTwoPartyFrac: row.republican / twoPartyTotal,
+            addFillColor: (allPartyTotal >= MIN_VOTES_THRESHOLD),
+            rows: PARTIES.map(party => {
+              let frac = row[party] / allPartyTotal;
+              let showInTooltip = (['republican', 'democratic'].indexOf(party) > -1) || (frac >= THIRD_PARTY_THRESHOLD);
+
+              return {
+                name: CANDIDATE_NAMES[row.year][party],
+                showInTooltip: showInTooltip,
+                votes: row[party],
+                frac: frac
+              }
+            })
+          };
+        });
+      });
+
+      let fetch2016Districts = fetch(DISTRICTS_TOPOJSON_2016_URL).then(r => r.json()).then(data => {
+        geojson['2016'] = topojson.feature(data, data.objects['nyed_16d']);
+      });
+
+      let fetch2020Districts = fetch(DISTRICTS_TOPOJSON_2020_URL).then(r => r.json()).then(data => {
+        geojson['2020'] = topojson.feature(data, data.objects['nyed_20c']);
+      });
+
+      Promise
+        .all([fetch2016Districts, fetch2020Districts, fetchElectionResults])
+        .then(() => initializeMap());
+
+      function initializeMap() {
+        mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN
+
+        map = new mapboxgl.Map({
+          container: 'map',
+          style: 'mapbox://styles/mapbox/light-v10?optimize=true',
+          bounds: [[-74.26, 40.49], [-73.69, 40.92]],
+          maxBounds: [[-75.26, 39.49], [-72.69, 41.92]],
+          minZoom: 8,
+          maxZoom: 20,
+          maxPitch: 0,
+          dragRotate: false,
+          pitchWithRotate: false,
+          hash: true
+        });
+
+        map.touchZoomRotate.disableRotation();
+
+        map.addControl(new mapboxgl.NavigationControl({
+          showCompass: false,
+          visualizePitch: false
+        }), 'bottom-right');
+
+        map.on('load', () => {
+          addMapSourceAndLayers();
+          addMapPopupAndHover();
+          addEventListeners();
+          updateMapColors();
+        });
+      }
+
+      function addMapSourceAndLayers() {
+        map.addSource('ed-source', {
+          type: 'geojson',
+          data: geojson[currentSelectedYear()],
+          promoteId: 'ElectDist'
+        });
+
+        map.addLayer({
+          id: 'ed-fill-layer',
+          type: 'fill',
+          source: 'ed-source',
+          paint: {
+            'fill-color': 'rgba(0, 0, 0, 0)',
+            'fill-opacity': [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false],
+              0.2,
+              0.7
+            ],
+            'fill-outline-color': 'rgba(0, 0, 0, 0)'
+          }
+        });
+
+        map.addLayer({
+          id: 'ed-border-layer',
+          type: 'line',
+          source: 'ed-source',
+          paint: {
+            'line-color': 'rgba(0, 0, 0, 0)',
+            'line-opacity': [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false],
+              0.9,
+              0.3
+            ],
+            'line-width': [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false],
+              5,
+              0.5
+            ]
+          }
+        });
+      }
+
+      function updateMapColors() {
+        let colorExpression = ['match', ['get', 'ElectDist']];
+
+        Object.keys(electionResults[currentSelectedYear()]).forEach(districtId => {
+          let r = electionResults[currentSelectedYear()][districtId];
+          if (isNaN(r.republicanTwoPartyFrac) || !r.addFillColor) return;
+          colorExpression.push(+districtId, calcColor(r.republicanTwoPartyFrac));
+        });
+
+        colorExpression.push(UNKNOWN_COLOR);
+        map.setPaintProperty('ed-fill-layer', 'fill-color', colorExpression);
+
+        colorExpression.splice(colorExpression.length - 1, 1, '#444');
+        map.setPaintProperty('ed-border-layer', 'line-color', colorExpression);
+      }
+
+      function calcColor(republicanFrac) {
+        if (typeof(republicanFrac) === 'undefined') return UNKNOWN_COLOR;
+        let colorIndex = Math.min(Math.floor(republicanFrac * COLOR_RANGE.length), COLOR_RANGE.length - 1);
+        return COLOR_RANGE[colorIndex];
+      }
+
+      function addMapPopupAndHover() {
+        let popupTrigger = (MOBILE ? 'click' : 'mousemove');
+
+        map.on(popupTrigger, 'ed-fill-layer', e => {
+          if (MOBILE && popup.isOpen()) {
+            popup.remove();
+            removeHoverState();
+            return;
+          }
+
+          showPopup(e);
+        });
+
+        map.on('mouseleave', 'ed-fill-layer', () => {
+          popup.remove();
+          removeHoverState();
+        });
+      }
+
+      function showPopup(e) {
+        let districtId = e.features[0].properties.ElectDist;
+
+        let popupHtml = `<div class="popup-header">District ${districtIdForDisplay(districtId)} in ${currentSelectedYear()}</div>`;
+        popupHtml += buildPopupTable(electionResults[currentSelectedYear()][districtId]);
+        popupHtml = `<div class="popup-text">${popupHtml}</div>`;
+
+        popup.setLngLat(e.lngLat).setHTML(popupHtml).addTo(map);
+
+        removeHoverState();
+        setHoverState(districtId);
+      }
+
+      function buildPopupTable(districtResults) {
+        if (!districtResults) return '';
+
+        let tableRowsHtml = '';
+
+        districtResults.rows.sort((c1, c2) => c2.votes - c1.votes).forEach(candidate => {
+          if (!candidate.showInTooltip) return;
+          tableRowsHtml += `
+            <tr>
+              <td>${candidate.name}</td>
+              <td class="numeric">${numberWithCommas(candidate.votes)}</td>
+              <td class="numeric">${fracToPctDisplay(candidate.frac)}</td>
+            </tr>
+          `;
+        });
+
+        return `
+          <table class="popup-table">
+            <thead>
+              <tr>
+                <th class="col1"></th>
+                <th class="col2 numeric">Votes</th>
+                <th class="col3 numeric">%</th>
+              </tr>
+            </thead>
+            <tbody>${tableRowsHtml}</tbody>
+          </table>
+        `;
+      }
+
+      function removeHoverState() {
+        if (!hoveredDistrictId) return;
+
+        map.setFeatureState(
+          {source: 'ed-source', id: hoveredDistrictId},
+          {hover: false}
+        );
+
+        hoveredDistrictId = null;
+      }
+
+      function setHoverState(distictId) {
+        if (!distictId) return;
+
+        hoveredDistrictId = distictId;
+
+        map.setFeatureState(
+          {source: 'ed-source', id: distictId},
+          {hover: true}
+        );
+      }
+
+      function addEventListeners() {
+        document.querySelectorAll('input[name="year"]').forEach(input => {
+          input.addEventListener('change', e => {
+            map.getSource('ed-source').setData(geojson[currentSelectedYear()]);
+            updateMapColors();
+            updateUrl();
+          });
+        });
+      }
+
+      function currentSelectedYear() {
+        return document.querySelector('input[name="year"]:checked').value;
+      }
+
+      function updateUrl() {
+        urlParams.set('year', currentSelectedYear());
+        let path = '?' + urlParams.toString();
+        if (window.location.hash) path = path + window.location.hash;
+        window.history.replaceState({}, '', path);
+      }
+
+      function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      }
+
+      function numberWithCommas(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+
+      function fracToPctDisplay(frac) {
+        if (isNaN(frac)) return '';
+        return Math.round(frac * 100) + '%';
+      }
+
+      function districtIdForDisplay(districtId) {
+        let s = districtId.toString();
+        return s.slice(2, 5) + '/' + s.slice(0, 2);
+      }
+    </script>
+  </body>
+</html>
