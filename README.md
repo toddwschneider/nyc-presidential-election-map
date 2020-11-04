@@ -14,7 +14,7 @@ A couple of resources to create an election district-level map of New York City 
 
 ## Data processing
 
-`scrape_unofficial_2020_results.rb` is a Ruby script that scrapes the [unofficial 2020 results pages](https://web.enrboenyc.us/CD23464ADI0.html) and writes the data to a csv. The data included in this repo was scraped as of 11:00 PM EST on election night, 11/3/2020. The unofficial results will likely change over time as more votes are counted, but I'm not sure of the details. My understanding is that absentee ballots are not included in the preliminary unofficial results
+`scrape_unofficial_2020_results.rb` is a Ruby script that scrapes the [unofficial 2020 results pages](https://web.enrboenyc.us/CD23464ADI0.html) and writes the data to a csv. The data included in this repo was scraped as of 11:45 PM EST on election night, 11/3/2020. The unofficial results will likely change over time as more votes are counted, but I'm not sure of the details. My understanding is that absentee ballots are not included in the preliminary unofficial results
 
 `fetch_election_results.R` downloads certified 2016 results data from the vote.nyc website, loads it into an R session, does a bit of processing, combines and writes aggregated election results to a file called `nyc_election_results_by_district.csv`
 
