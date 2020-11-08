@@ -14,7 +14,7 @@ library(tidyverse)
 
 results_url_2016 = "https://vote.nyc/sites/default/files/pdf/election_results/2016/20161108General%20Election/00000100000Citywide%20President%20Vice%20President%20Citywide%20EDLevel.csv"
 
-results_file_2016 = "raw_election_results_files/results_2016.csv"
+results_file_2016 = "certified_results/results_2016.csv"
 
 download.file(results_url_2016, results_file_2016)
 
@@ -36,7 +36,7 @@ election_results_2016 = read_csv(results_file_2016, guess_max = 10e3) %>%
 
 # TODO get official 2020 results once they are available
 #      for now, use the unofficial results scraped by scrape_unofficial_results.rb
-election_results_2020 = read_csv("unofficial_results_2020.csv")
+election_results_2020 = read_csv("unofficial_results/results_2020.csv")
 
 bind_rows(election_results_2016, election_results_2020) %>%
   write_csv("nyc_election_results_by_district.csv")
