@@ -89,11 +89,6 @@
       }
       .popup-text .numeric { text-align: right; }
       .more-info a { text-decoration: none; }
-      .note-2020 {
-        font-size: 12px;
-        color: #888;
-        margin-bottom: 8px;
-      }
       @media (max-width: 524px) {
         .map-title, .mapboxgl-ctrl-bottom-right { display: none; }
         .map-info {
@@ -114,10 +109,6 @@
           display: block;
           margin: 2px 0 0 0;
         }
-        .note-2020 {
-          text-align: center;
-          margin: 2px 6px;
-        }
       }
     </style>
   </head>
@@ -131,10 +122,6 @@
         <div class="more-info">
           <a href="https://github.com/toddwschneider/nyc-presidential-election-map" target="_blank">Code on GitHub</a>
         </div>
-      </div>
-
-      <div class="note-2020">
-        Unofficial 2020 results do not yet include absentee ballots
       </div>
 
       <div class="year-buttons">
@@ -180,7 +167,7 @@
       const THIRD_PARTY_THRESHOLD = 0.02;
       const DISTRICTS_TOPOJSON_2016_URL = 'https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/topojson/nyed_16d.json';
       const DISTRICTS_TOPOJSON_2020_URL = 'https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/topojson/nyed_20c.json';
-      const ELECTION_RESULTS_URL = 'https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/unofficial/nyc_election_results_by_district-2020-11-04-0730.csv';
+      const ELECTION_RESULTS_URL = 'https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/certified/nyc_election_results_by_district-2020-12-01.csv';
       const MOBILE = isMobileDevice();
       const COLOR_RANGE = ['#000088', '#26258c', '#4d4a91', '#737096', '#9a959b', '#c0baa0', '#e7e0a5', '#dcba89', '#d2956e', '#c87052', '#be4a37', '#b4251b', '#aa0000'];
       const UNKNOWN_COLOR = 'rgba(0, 0, 0, 0)';
