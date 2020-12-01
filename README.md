@@ -2,12 +2,11 @@
 
 Some resources to create an election district-level map of New York City with 2016 and 2020 presidential election results
 
-**NOTE:** 2020 election results are still unofficial. My understanding is that the 2020 data included in this repo—scraped as of 7:30 AM EST on 11/4/2020—represents approximately 95% of in-person (early + election day) votes cast, and does not include any absentee ballots yet. Visit the [NYC Board of Elections website](https://vote.nyc) for more info
+**Note:** 2020 election results are certified as of December 1, 2020. This means they now include absentee ballots
 
 ## Data sources
 
-- [2020 unofficial election night results](https://web.enrboenyc.us/CD23464ADI0.html)
-- Certified 2016 election results data via [NYC Board of Elections](https://vote.nyc/page/election-results-summary)
+- Certified 2016 and 2020 election results data via [NYC Board of Elections](https://vote.nyc/page/election-results-summary)
 - District shapefiles via [NYC Planning](https://www1.nyc.gov/site/planning/data-maps/open-data/districts-download-metadata.page)
 
 ## Live map
@@ -18,9 +17,7 @@ Some resources to create an election district-level map of New York City with 20
 
 ## Data processing
 
-`scrape_unofficial_2020_results.rb` is a Ruby script that scrapes the [unofficial 2020 results pages](https://web.enrboenyc.us/CD23464ADI0.html) and writes the data to a csv. The unofficial results will likely change over time as more votes are counted, but I'm not sure of the details. My understanding is that absentee ballots are not included in the preliminary unofficial results
-
-`fetch_certified_election_results.R` downloads certified 2016 data from the vote.nyc website, loads it into an R session, does a bit of processing, combines with the unofficial results scraped above, and writes aggregated results to a file called `nyc_election_results_by_district.csv`
+`fetch_certified_election_results.R` downloads certified 2016 and 2020 data from the vote.nyc website, loads it into an R session, does a bit of processing, combines with the unofficial results scraped above, and writes aggregated results to a file called `nyc_election_results_by_district.csv`
 
 Presumably there will be certified 2020 election results available in the future, at which point all results should come from the certified page instead of the unofficial tables
 
@@ -44,6 +41,13 @@ geo2topo -o nyed_20c.json -q 1e6 nyed_20c.geojson
 ```
 
 Note that there are two TopoJSON files included, `nyed_16d` and `nyed_20c`, because election district boundaries change over time. As with the election results csv, `map.html` reads TopoJSON files that I have hosted, but you could rehost your own and then update the `DISTRICTS_TOPOJSON_2016_URL` and `DISTRICTS_TOPOJSON_2020_URL` variables
+
+## Unofficial election night results
+
+`scrape_unofficial_2020_results.rb` is a Ruby script that scrapes the [unofficial 2020 results pages](https://web.enrboenyc.us/CD23464ADI0.html) and writes the data to a csv. Note that:
+
+1. absentee ballots were not included in the unofficial results
+2. the unofficial results have since been superseded by the certified 2020 results, which do include absentee ballots
 
 ## Inspiration
 
