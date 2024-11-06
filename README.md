@@ -1,25 +1,23 @@
 # NYC Presidential Election Results Map
 
-Some resources to create an election district-level map of New York City with 2016 and 2020 presidential election results
+Some resources to create an election district-level map of New York City with 2016–2024 presidential election results
 
-**Note:** 2020 election results are certified as of December 1, 2020. This means they now include absentee ballots
+**Note:** 2024 election results are unofficial until certified
 
 ## Data sources
 
-- Certified 2016 and 2020 election results data via [NYC Board of Elections](https://vote.nyc/page/election-results-summary)
-- District shapefiles via [NYC Planning](https://www1.nyc.gov/site/planning/data-maps/open-data/districts-download-metadata.page)
+- Election results data via [NYC Board of Elections](https://vote.nyc/page/election-results-summary)
+- District shapefiles via [NYC Planning](https://www.nyc.gov/site/planning/data-maps/open-data/districts-download-metadata.page)
 
 ## Live map
 
 [See here for a live interactive version of the map](https://toddwschneider.com/maps/nyc-presidential-election-results/)
 
-[![nyc election map](https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/img/nyc_election_results_2020.png)](https://toddwschneider.com/maps/nyc-presidential-election-results/)
+[![nyc election map](https://toddwschneiderdotcom.twscontent.com/nyc-presidential-election-results/img/nyc_election_results_map_2024.png)](https://toddwschneider.com/maps/nyc-presidential-election-results/)
 
 ## Data processing
 
-`fetch_election_results.R` downloads certified 2016 and 2020 data from the vote.nyc website, loads it into an R session, does a bit of processing, combines with the unofficial results scraped above, and writes aggregated results to a file called `nyc_election_results_by_district.csv`
-
-Presumably there will be certified 2020 election results available in the future, at which point all results should come from the certified page instead of the unofficial tables
+`fetch_election_results.R` downloads certified data from the vote.nyc website, loads it into an R session, does a bit of processing, combines with the unofficial results scraped above, and writes aggregated results to a file called `nyc_election_results_by_district.csv`
 
 I've included my aggregated results file in this repo, in addition to the raw data files as I downloaded them from vote.nyc. You should be able to reproduce similar results by running the Ruby and R scripts, though the unofficial results in particular will update over time as more ballots get counted, in which case your results might not match up with mine
 
@@ -44,10 +42,7 @@ Note that there are two TopoJSON files included, `nyed_16d` and `nyed_20c`, beca
 
 ## Unofficial election night results
 
-`scrape_unofficial_2020_results.rb` is a Ruby script that scrapes the [unofficial 2020 results pages](https://web.enrboenyc.us/CD23464ADI0.html) and writes the data to a csv. Note that:
-
-1. absentee ballots were not included in the unofficial results
-2. the unofficial results have since been superseded by the certified 2020 results, which do include absentee ballots
+`scrape_unofficial_2024_results.rb` is a Ruby script that scrapes the [unofficial 2024 results pages](https://enr.boenyc.gov/) and writes the data to a csv
 
 ## Inspiration
 
