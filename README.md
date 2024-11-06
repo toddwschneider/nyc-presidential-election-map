@@ -17,7 +17,7 @@ Some resources to create an election district-level map of New York City with 20
 
 ## Data processing
 
-`fetch_certified_election_results.R` downloads certified 2016 and 2020 data from the vote.nyc website, loads it into an R session, does a bit of processing, combines with the unofficial results scraped above, and writes aggregated results to a file called `nyc_election_results_by_district.csv`
+`fetch_election_results.R` downloads certified 2016 and 2020 data from the vote.nyc website, loads it into an R session, does a bit of processing, combines with the unofficial results scraped above, and writes aggregated results to a file called `nyc_election_results_by_district.csv`
 
 Presumably there will be certified 2020 election results available in the future, at which point all results should come from the certified page instead of the unofficial tables
 

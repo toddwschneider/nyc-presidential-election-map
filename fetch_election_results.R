@@ -12,6 +12,9 @@ if (length(packages_to_install) > 0) {
 
 library(tidyverse)
 
+# TODO 2024 results are still unofficial. Use certified results once they are available
+election_results_2024 = read_csv("unofficial_results/results_2024.csv")
+
 results_url_2016 = "https://vote.nyc/sites/default/files/pdf/election_results/2016/20161108General%20Election/00000100000Citywide%20President%20Vice%20President%20Citywide%20EDLevel.csv"
 
 results_url_2020 = "https://vote.nyc/sites/default/files/pdf/election_results/2020/20201103General%20Election/00000100000Citywide%20President%20Vice%20President%20Citywide%20EDLevel.csv"
@@ -57,5 +60,13 @@ election_results_2020 = raw_certified_2020_results[, 12:22] %>%
   ) %>%
   mutate(year = 2020)
 
-bind_rows(election_results_2016, election_results_2020) %>%
-  write_csv("nyc_election_results_by_district.csv")
+bind_rows(
+  election_results_2016,
+  election_results_2020,
+  election_results_2024
+) %>%
+  mutate(
+    green = replace_na(green, 0),
+    libertarian = replace_na(libertarian, 0)
+  ) %>%
+  write_csv("unofficial_results/results_2024.csv")
