@@ -69,4 +69,4 @@ bind_rows(
     green = replace_na(green, 0),
     libertarian = replace_na(libertarian, 0)
   ) %>%
-  write_csv("unofficial_results/results_2024.csv")
+  write_csv("unofficial_results/results_2016_2020_2024.csv")
