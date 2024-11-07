@@ -38,7 +38,7 @@ ogr2ogr -f GeoJSON -t_srs crs:84 nyed_20c.geojson nyed_20c/nyed.shp
 geo2topo -o nyed_20c.json -q 1e6 nyed_20c.geojson
 ```
 
-Note that there are two TopoJSON files included, `nyed_16d` and `nyed_20c`, because election district boundaries change over time. As with the election results csv, `map.html` reads TopoJSON files that I have hosted, but you could rehost your own and then update the `DISTRICTS_TOPOJSON_2016_URL` and `DISTRICTS_TOPOJSON_2020_URL` variables
+Note that there are multiple TopoJSON files included, because election district boundaries change over time. As with the election results csv, `map.html` reads TopoJSON files that I have hosted, but you could rehost your own and then update the `DISTRICTS_TOPOJSON_*_URL` variables
 
 ## Unofficial election night results
 
