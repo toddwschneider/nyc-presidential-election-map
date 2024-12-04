@@ -2,8 +2,6 @@
 
 Some resources to create an election district-level map of New York City with 2016–2024 presidential election results
 
-**Note:** 2024 election results are unofficial until certified
-
 ## Data sources
 
 - Election results data via [NYC Board of Elections](https://vote.nyc/page/election-results-summary)
@@ -17,9 +15,9 @@ Some resources to create an election district-level map of New York City with 20
 
 ## Data processing
 
-`fetch_election_results.R` downloads certified data from the vote.nyc website, loads it into an R session, does a bit of processing, combines with the unofficial results scraped above, and writes aggregated results to a file called `nyc_election_results_by_district.csv`
+`fetch_election_results.R` downloads certified data from the vote.nyc website, loads it into an R session, does a bit of processing, and writes aggregated results to a file called `nyc_election_results_by_district.csv`
 
-I've included my aggregated results file in this repo, in addition to the raw data files as I downloaded them from vote.nyc. You should be able to reproduce similar results by running the Ruby and R scripts, though the unofficial results in particular will update over time as more ballots get counted, in which case your results might not match up with mine
+I've included my aggregated results file in this repo, in addition to the raw data files as I downloaded them from vote.nyc. You should be able to reproduce similar results by running the Ruby and R scripts, though the unofficial results might update over time as more ballots get counted, in which case your results might not match up with mine
 
 ## Map
 
@@ -42,7 +40,7 @@ Note that there are multiple TopoJSON files included, because election district 
 
 ## Unofficial election night results
 
-`scrape_unofficial_2024_results.rb` is a Ruby script that scrapes the [unofficial 2024 results pages](https://enr.boenyc.gov/) and writes the data to a csv
+`scrape_unofficial_2024_results.rb` is a Ruby script that scrapes the [unofficial 2024 results pages](https://enr.boenyc.gov/) and writes the data to a csv. Once the official results have been certified, there's no need to use the unofficial election night results
 
 ## Inspiration
 
